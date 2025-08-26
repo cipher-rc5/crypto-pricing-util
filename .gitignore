@@ -171,3 +171,8 @@ dist
 .dev.vars
 .wrangler/
 .aider*
+
+_dev/
+bun.lockb
+.DS_Store
+src/.DS_Store

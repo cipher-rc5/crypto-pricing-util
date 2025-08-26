@@ -1,7 +1,9 @@
-// src/services/birdeye.ts
+// file: src/services/birdeye.ts
+// description: birdeye api service for fetching cryptocurrency prices
+// docs_reference: https://docs.birdeye.so
 
 import { getChainNameByService, isChainSupportedByService, service_api_url } from '../config/chains';
-import type { BirdeyeResponse, PriceResult } from '../types';
+import { BirdeyeResponse, PriceResult, Env } from '../types';
 
 export async function fetchBirdeyePrice(tokenAddress: string, chainId: string | number, env: Env): Promise<PriceResult> {
   const start = Date.now();

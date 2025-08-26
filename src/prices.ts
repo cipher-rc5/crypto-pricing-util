@@ -1,12 +1,12 @@
 // src/prices.ts
 
-import { isChainSupportedByService, service_api_url, supported_chains } from './config/chains';
+import { isChainSupportedByService, supported_chains } from './config/chains';
 import { fetchBirdeyePrice } from './services/birdeye';
 import { fetchCodexPrice } from './services/codex';
 import { fetchDefiLlamaPrice } from './services/defillama';
 import { fetchDexscreenerPrice } from './services/dexscreener';
 import { fetchGeckoTerminalPrice } from './services/geckoterminal';
-import type { PriceResult } from './types';
+import { PriceResult } from './types';
 
 export enum ChainType {
   EVM = 'EVM',
@@ -38,20 +38,20 @@ interface FetchPricesOptions {
   searchWidth?: string;
 }
 
-// Updated type definitions
-type ServiceFetchFunction = {
-  (tokenAddress: string, chainId: string | number, env: Env, timestamp?: number): Promise<PriceResult>
-} | { (tokenAddress: string, chainId: string | number): Promise<PriceResult> };
+// type definitions
+type ServiceFetchFunction = { (tokenAddress: string, chainId: string | number, env: Env, timestamp?: number): Promise<PriceResult> } | {
+  (tokenAddress: string, chainId: string | number): Promise<PriceResult>
+};
 interface ServiceFetcher {
   fetcher: ServiceFetchFunction;
   requiresEnv: boolean;
   supportsHistorical: boolean;
 }
 
-// Updated service fetchers configuration
+// service fetchers configuration
 const SERVICE_FETCHERS: Record<string, ServiceFetcher> = {
   birdeye: {
-    fetcher: async (tokenAddress: string, chainId: string | number, env: Env) => {
+    fetcher: async (tokenAddress: string, chainId: string | number, env: any) => {
       try {
         const result = await fetchBirdeyePrice(tokenAddress, chainId, env);
         return { ...result, latency: result.latency || 0 };
@@ -101,11 +101,7 @@ export async function fetchPrices(
       try {
         const fetchPromise = async (): Promise<[string, PriceResult]> => {
           const result = service.requiresEnv ?
-            await (service.fetcher as (t: string, c: string | number, e: Env) => Promise<PriceResult>)(
-              tokenAddress,
-              chainId,
-              env
-            ) :
+            await (service.fetcher as (t: string, c: string | number, e: Env) => Promise<PriceResult>)(tokenAddress, chainId, env) :
             await (service.fetcher as (t: string, c: string | number) => Promise<PriceResult>)(tokenAddress, chainId);
           return [serviceName, result];
         };
@@ -113,9 +109,7 @@ export async function fetchPrices(
         pricePromises.push(fetchPromise());
       } catch (err) {
         const error = err as Error;
-        pricePromises.push(
-          Promise.resolve([serviceName, { price: null, error: `Service error: ${error.message}`, latency: 0 }])
-        );
+        pricePromises.push(Promise.resolve([serviceName, { price: null, error: `Service error: ${error.message}`, latency: 0 }]));
       }
     }
 
@@ -131,19 +125,13 @@ export async function fetchPrices(
       if (result.status === 'fulfilled') {
         prices[result.value[0]] = result.value[1];
       } else {
-        prices[serviceName] = {
-          price: null,
-          error: `Service failed: ${result.reason?.message || 'Unknown error'}`,
-          latency: 0
-        };
+        prices[serviceName] = { price: null, error: `Service failed: ${result.reason?.message || 'Unknown error'}`, latency: 0 };
       }
     });
 
     const validPrices = Object.values(prices).map(r => r.price).filter((price): price is number => price !== null);
 
-    const aggregatedPrice = validPrices.length > 0 ?
-      validPrices.sort((a, b) => a - b)[Math.floor(validPrices.length / 2)] :
-      null;
+    const aggregatedPrice = validPrices.length > 0 ? validPrices.sort((a, b) => a - b)[Math.floor(validPrices.length / 2)] : null;
 
     return { success: true, prices, aggregatedPrice };
   } catch (err) {

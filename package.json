@@ -1,29 +1,36 @@
 {
-  "name": "crypto-pricing-util",
-  "version": "0.0.1",
-  "private": true,
+  "name": "crypto-pricing",
+  "version": "0.0.2",
+  "author": "ℭ𝔦𝔭𝔥𝔢𝔯",
+  "description": "aggregate cryptocurrency pricing utility",
   "scripts": {
-    "deploy": "bun run build && bunx wrangler deploy",
-    "dev": "bunx wrangler dev",
-    "build": "bun build ./src/index.ts --target bun --outdir dist",
+    "clean:build": "rm -ir .wrangler dist",
+    "clean:all": "rm -ir .wrangler dist node_modules",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dev": "wrangler deploy --env development",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:prod": "wrangler deploy --env production",
+    "build": "bun build ./src/index.ts --target bun --outfile dist/worker.js",
     "start": "bunx wrangler dev",
-    "test": "vitest",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "format": "dprint fmt",
+    "format:check": "dprint check",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.5.2",
-    "@cloudflare/workers-types": "^4.20241230.0",
-    "typescript": "^5.5.2",
-    "vitest": "2.1.8",
-    "wrangler": "^3.60.3"
+    "wrangler": "^4.33.0"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.4.2",
-    "@scalar/hono-api-reference": "^0.5.165",
-    "@types/bun": "^1.1.14",
-    "dprint": "^0.48.0",
-    "hono": "^4.6.15",
-    "openapi3-ts": "^4.4.0",
-    "zod": "^3.24.1"
+    "@hono/zod-validator": "^0.7.2",
+    "@scalar/hono-api-reference": "^0.9.16",
+    "@types/bun": "^1.2.21",
+    "dprint": "^0.50.1",
+    "hono": "^4.9.4",
+    "openapi3-ts": "^4.5.0",
+    "typescript": "^5.9.2",
+    "zod": "^4.1.3"
   }
 }

@@ -1,4 +1,6 @@
-// src/types.ts
+// file: src/types.ts
+// description: typeScript type definitions for crypto pricing api
+// docs_reference: https://developers.cloudflare.com/workers/runtime-apis/
 
 export interface PriceRequest {
   chainId: number | string;
@@ -26,6 +28,23 @@ export interface HealthCheckResponse {
   services: { [service: string]: { status: 'operational' | 'degraded' | 'down', latency: number, error?: string } };
 }
 
+export interface Env {
+  // Secrets (managed via wrangler secret put)
+  API_KEY: string;
+  CODEX_API: string;
+  BIRDEYE_API: string;
+  COINMARKETCAP_API: string;
+  COINGECKO_API: string;
+  OPENAI_API_KEY: string;
+
+  // Environment variables
+  ENVIRONMENT: 'development' | 'staging' | 'production';
+  LOG_LEVEL: 'debug' | 'info' | 'warn';
+
+  // KV namespaces
+  // CACHE?: KVNamespace;
+}
+
 // prices - request types, utilized for price endpoints
 
 export interface BirdeyeResponse {
@@ -44,7 +63,7 @@ export interface CodexResponse {
   data: { getTokenPrices: Array<{ address: string, networkId: number, priceUsd: number, timestamp?: number }> };
 }
 
-export interface coinpaprika_price_response {
+export interface CoinPaprikaPriceResponse {
   id: string;
   name: string;
   symbol: string;

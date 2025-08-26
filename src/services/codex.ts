@@ -1,14 +1,11 @@
-// src/services/codex.ts
+// file: src/services/codex.ts
+// description: codex api service for fetching cryptocurrency prices with historical support
+// docs_reference: https://docs.codex.io
 
 import { isChainSupportedByService, service_api_url } from '../config/chains';
-import type { CodexResponse, PriceResult } from '../types';
+import { CodexResponse, PriceResult, Env } from '../types';
 
-export async function fetchCodexPrice(
-  tokenAddress: string,
-  chainId: string | number,
-  env: Env,
-  timestamp?: number
-): Promise<PriceResult> {
+export async function fetchCodexPrice(tokenAddress: string, chainId: string | number, env: Env, timestamp?: number): Promise<PriceResult> {
   const start = Date.now();
   try {
     if (!isChainSupportedByService(chainId, 'codex')) {
@@ -21,7 +18,7 @@ export async function fetchCodexPrice(
     }
     inputStr += ' }';
 
-    const query = `{
+    const query = `query {
       getTokenPrices(
         inputs: [${inputStr}]
       ) {
@@ -46,16 +43,8 @@ export async function fetchCodexPrice(
     }
 
     const data = await response.json() as CodexResponse;
-    return {
-      price: data.data?.getTokenPrices[0]?.priceUsd || null,
-      timestamp: data.data?.getTokenPrices[0]?.timestamp,
-      latency
-    };
+    return { price: data.data?.getTokenPrices[0]?.priceUsd || null, timestamp: data.data?.getTokenPrices[0]?.timestamp, latency };
   } catch (error) {
-    return {
-      price: null,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      latency: Date.now() - start
-    };
+    return { price: null, error: error instanceof Error ? error.message : 'Unknown error', latency: Date.now() - start };
   }
 }

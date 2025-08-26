@@ -1,6 +1,9 @@
-// src/services/dexscreener.ts
+// file: src/services/dexscreener.ts
+// DexScreener API service for fetching cryptocurrency prices
+// docs_reference: https://docs.dexscreener.com/api/reference
+
 import { isChainSupportedByService, service_api_url } from '../config/chains';
-import type { DexscreenerResponse, PriceResult } from '../types';
+import { type DexscreenerResponse, PriceResult } from '../types';
 
 export async function fetchDexscreenerPrice(tokenAddress: string, chainId: string | number): Promise<PriceResult> {
   const start = Date.now();
@@ -19,10 +22,6 @@ export async function fetchDexscreenerPrice(tokenAddress: string, chainId: strin
     const data = await response.json() as DexscreenerResponse;
     return { price: data.pairs?.[0]?.priceUsd || null, latency };
   } catch (error) {
-    return {
-      price: null,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      latency: Date.now() - start
-    };
+    return { price: null, error: error instanceof Error ? error.message : 'Unknown error', latency: Date.now() - start };
   }
 }

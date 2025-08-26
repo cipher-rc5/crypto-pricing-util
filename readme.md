@@ -1,6 +1,7 @@
 # Crypto Pricing Utility
 
 A Cloudflare Worker service that aggregates cryptocurrency pricing data from multiple sources.
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=<https://github.com/cipher-rc5/crypto-pricing-util.git>)
 
 ## Project Structure
 
@@ -98,7 +99,7 @@ bunx wrangler kv:key put --binding=API_KEYS "your-api-key-here" "true"
 ### Health Check
 
 ```sh
-curl -H "X-API-Key: {YOUR_API_KEY}" https://{YOUR_WORKER_DOMAIN}/health
+curl -H "X-API-Key: {YOUR_API_KEY}" https://{DEPLOYMENT_URL}/health
 ```
 
 ### Price Lookup
@@ -110,7 +111,7 @@ curl -X POST \
   -H "X-API-Key: {YOUR_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"chainId": 1, "tokenAddress": "0x41545f8b9472d758bb669ed8eaeeecd7a9c4ec29"}' \
-  https://{YOUR_WORKER_DOMAIN}/api/prices
+  https://{DEPLOYMENT_URL}/api/prices
 ```
 
 Historical price lookup:
@@ -124,7 +125,7 @@ curl -X POST \
     "tokenAddress": "0x41545f8b9472d758bb669ed8eaeeecd7a9c4ec29",
     "timestamp": 1732084737
   }' \
-  https://{YOUR_WORKER_DOMAIN}/api/prices
+  https://{DEPLOYMENT_URL}/api/prices
 ```
 
 ## Response Format
@@ -151,6 +152,12 @@ COINMARKETCAP_API=your_coinmarketcap_api_key
 
 4. Run locally with `bun run dev`
 5. Deploy with `bun run deploy`
+
+## Repomix
+
+```sh
+repomix --style markdown -o _v01-llm.md --verbose --parsable-style --no-file-summary --include src
+```
 
 ## Contributing
 

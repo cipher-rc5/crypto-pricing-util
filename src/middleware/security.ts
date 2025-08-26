@@ -1,4 +1,6 @@
-// src/middleware/security.ts
+// file: src/middleware/security.ts
+// description: Security middleware with configurable bot protection and rate limiting
+// docs_reference: https://developers.cloudflare.com/workers/runtime-apis/request/
 
 import { Context, Next } from 'hono';
 import { getCookie, setCookie } from 'hono/cookie';
@@ -13,6 +15,7 @@ interface SecurityOptions {
   rateLimit: { requests: number, windowMs: number };
   botProtection: boolean;
   securityHeaders: boolean;
+  clientVerification: boolean; // New option to disable client verification
 }
 
 const DEFAULT_OPTIONS: SecurityOptions = {
@@ -20,8 +23,9 @@ const DEFAULT_OPTIONS: SecurityOptions = {
     requests: 100, // requests per window
     windowMs: 60 * 1000 // 1 minute
   },
-  botProtection: true,
-  securityHeaders: true
+  botProtection: true, // Disabled by default to avoid issues
+  securityHeaders: true,
+  clientVerification: true // Disabled by default
 };
 
 class SecurityMiddleware {
@@ -56,19 +60,32 @@ class SecurityMiddleware {
   }
 
   private generateNonce(): string {
-    return crypto.getRandomValues(new Uint8Array(16)).reduce(
-      (str, byte) => str + byte.toString(16).padStart(2, '0'),
-      ''
-    );
+    return crypto.getRandomValues(new Uint8Array(16)).reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
   }
 
   private async validateClientIntegrity(c: Context): Promise<boolean> {
+    // If client verification is disabled, always return true
+    if (!this.options.clientVerification) {
+      return true;
+    }
+
     const nonce = getCookie(c, 'client_nonce');
     const expectedNonce = getCookie(c, 'expected_nonce');
 
     // Generate new nonce for next request
     const newNonce = this.generateNonce();
     setCookie(c, 'expected_nonce', newNonce, { httpOnly: true, secure: true, sameSite: 'Strict', path: '/' });
+
+    // For first time visitors, set up the verification system
+    if (!expectedNonce) {
+      setCookie(c, 'client_nonce', newNonce, {
+        httpOnly: false, // Client needs to read this
+        secure: true,
+        sameSite: 'Strict',
+        path: '/'
+      });
+      return true; // Allow first request
+    }
 
     return nonce === expectedNonce;
   }
@@ -96,27 +113,27 @@ class SecurityMiddleware {
 
   public middleware = async (c: Context, next: Next) => {
     try {
-      // Basic bot protection - this could definitely be improved upon
-      if (this.options.botProtection) {
-        const userAgent = c.req.header('user-agent') || '';
-        if (this.isBotUserAgent(userAgent)) {
-          throw new HTTPException(403, { message: 'Access denied' });
-        }
-
-        // Validate client integrity
-        if (!(await this.validateClientIntegrity(c))) {
-          throw new HTTPException(403, { message: 'Invalid client verification' });
-        }
-      }
-
-      // Rate limiting
-      const clientIP = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+      // Rate limiting - use CF-Connecting-IP or fallback to x-forwarded-for
+      const clientIP = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
 
       if (this.isRateLimited(clientIP)) {
         throw new HTTPException(429, { message: 'Too many requests' });
       }
 
       this.updateRateLimit(clientIP);
+
+      // Bot protection (only basic user agent check)
+      if (this.options.botProtection) {
+        const userAgent = c.req.header('user-agent') || '';
+        if (this.isBotUserAgent(userAgent)) {
+          throw new HTTPException(403, { message: 'Access denied' });
+        }
+
+        // Client integrity validation (optional)
+        if (!(await this.validateClientIntegrity(c))) {
+          throw new HTTPException(403, { message: 'Invalid client verification' });
+        }
+      }
 
       // Security headers
       if (this.options.securityHeaders) {
@@ -150,4 +167,4 @@ class SecurityMiddleware {
   }
 }
 
-export { SecurityMiddleware, type SecurityOptions };
+export { type SecurityOptions, SecurityMiddleware };

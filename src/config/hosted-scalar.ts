@@ -1,4 +1,6 @@
-// src/config/hosted-scalar.ts
+// file: src/config/hosted-scalar.ts
+// description: openapi specification for api documentation
+// docs_reference: https://github.com/scalar/scalar
 
 import { OpenAPIObject } from 'openapi3-ts/oas31';
 
@@ -9,7 +11,7 @@ export const openApiSpec: OpenAPIObject = {
     version: '0.0.2',
     description: `
       Fetch cryptocurrency prices across multiple chains and services.
-      Supports both current and historical price lookups from various sources including:
+      Supports current and historical price lookups from various sources including:
       Codex, DefiLlama, Birdeye, GeckoTerminal, and Dexscreener.
     `
   },
@@ -19,20 +21,14 @@ export const openApiSpec: OpenAPIObject = {
   }],
   security: [{ ApiKeyAuth: [] }],
   components: {
-    securitySchemes: {
-      ApiKeyAuth: { type: 'apiKey', in: 'header', name: 'X-API-Key', description: 'API key for authentication' }
-    },
+    securitySchemes: { ApiKeyAuth: { type: 'apiKey', in: 'header', name: 'X-API-Key', description: 'API key for authentication' } },
     schemas: {
       PriceRequest: {
         type: 'object',
         required: ['chainId', 'tokenAddress'],
         properties: {
           chainId: { oneOf: [{ type: 'number' }, { type: 'string' }], description: 'Chain ID (e.g., 1 for Ethereum)' },
-          tokenAddress: {
-            type: 'string',
-            description: 'Token contract address',
-            example: '0x41545f8b9472d758bb669ed8eaeeecd7a9c4ec29'
-          },
+          tokenAddress: { type: 'string', description: 'Token contract address', example: '0x41545f8b9472d758bb669ed8eaeeecd7a9c4ec29' },
           timestamp: { type: 'number', description: 'Optional UNIX timestamp for historical prices' },
           searchWidth: { type: 'string', description: 'Optional search width for historical prices (e.g., "4h")' }
         }
@@ -46,11 +42,7 @@ export const openApiSpec: OpenAPIObject = {
             type: 'object',
             additionalProperties: {
               type: 'object',
-              properties: {
-                priceUsd: { type: ['number', 'null'] },
-                timestamp: { type: 'number' },
-                error: { type: 'string' }
-              }
+              properties: { priceUsd: { type: ['number', 'null'] }, timestamp: { type: 'number' }, error: { type: 'string' } }
             }
           },
           aggregatedPrice: { type: ['number', 'null'] }
@@ -113,8 +105,5 @@ export const openApiSpec: OpenAPIObject = {
       }
     }
   },
-  tags: [{ name: 'Prices', description: 'Price-related endpoints' }, {
-    name: 'System',
-    description: 'System health and status endpoints'
-  }]
+  tags: [{ name: 'Prices', description: 'Price-related endpoints' }, { name: 'System', description: 'System health and status endpoints' }]
 };

@@ -1,7 +1,9 @@
-// src/services/defillama.ts
+// file: src/services/defillama.ts
+// DefiLlama API service for fetching cryptocurrency prices
+// docs_reference: https://defillama.com/docs/api
 
 import { getChainNameByService, isChainSupportedByService, service_api_url } from '../config/chains';
-import type { DefiLlamaResponse, PriceResult } from '../types';
+import { DefiLlamaResponse, PriceResult } from '../types';
 
 export async function fetchDefiLlamaPrice(tokenAddress: string, chainId: string | number): Promise<PriceResult> {
   const start = Date.now();
@@ -27,7 +29,12 @@ export async function fetchDefiLlamaPrice(tokenAddress: string, chainId: string 
     const data = await response.json() as DefiLlamaResponse;
     const priceData = data.coins[coinKey];
 
-    return { price: priceData?.price || null, latency, timestamp: priceData?.timestamp, ...(priceData?.confidence && { confidence: priceData.confidence }) };
+    return {
+      price: priceData?.price || null,
+      latency,
+      timestamp: priceData?.timestamp,
+      ...(priceData?.confidence && { confidence: priceData.confidence })
+    };
   } catch (error) {
     return { price: null, error: error instanceof Error ? error.message : 'Unknown error', latency: Date.now() - start };
   }

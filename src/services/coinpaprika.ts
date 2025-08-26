@@ -1,7 +1,9 @@
-// src/services/coinpaprika.ts
+// file: src/services/coinpaprika.ts
+// description: coinpaprika api service for fetching cryptocurrency prices
+// docs_reference: https://api.coinpaprika.com
 
 import { getChainNameByService, isChainSupportedByService, service_api_url } from '../config/chains';
-import type { coinpaprika_price_response, PriceResult } from '../types';
+import { CoinPaprikaPriceResponse, PriceResult, Env } from '../types';
 
 export async function fetchCoinpaprikaPrice(tokenAddress: string, chainId: string | number, env: Env): Promise<PriceResult> {
   const start = Date.now();
@@ -19,7 +21,7 @@ export async function fetchCoinpaprikaPrice(tokenAddress: string, chainId: strin
     if (!response.ok) {
       return { price: null, error: `Coinpaprika API error: ${response.status}`, latency };
     }
-    const data = await response.json() as coinpaprika_price_response;
+    const data = await response.json() as CoinPaprikaPriceResponse;
     return { price: data.price_usd, timestamp: Date.now(), latency };
   } catch (error) {
     return { price: null, error: error instanceof Error ? error.message : 'Unknown error', latency: Date.now() - start };
